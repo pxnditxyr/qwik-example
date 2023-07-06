@@ -1,40 +1,43 @@
-import { $, component$, useOnDocument, useStore, useTask$ } from '@builder.io/qwik';
+import { $, component$, useContext, useOnDocument, useTask$ } from '@builder.io/qwik';
 import { type DocumentHead } from '@builder.io/qwik-city';
 import { PokemonImage } from '~/components/pokemons/pokemon-image';
+import { PokemonListContext } from '~/context/pokemon/pokemon-list.context';
 import { getSmallPokemons } from '~/helpers';
-import { type SmallPokemon } from '~/interfaces';
+// import { type SmallPokemon } from '~/interfaces';
 
-interface PokemonPageState {
-  currentPage: number
-  pokemons:    SmallPokemon[]
-  isLoading:   boolean
-}
+// interface PokemonPageState {
+//   currentPage: number
+//   pokemons:    SmallPokemon[]
+//   isLoading:   boolean
+// }
 
 export default component$( () => {
 
-  const pokemonState = useStore<PokemonPageState>({
-    currentPage: 0,
-    pokemons: [],
-    isLoading: false, // If use useTask isLoading will be false, is use useVisibleTask isLoading will be true
-  })
+  const pokemonList = useContext( PokemonListContext )
+
+  // const pokemonState = useStore<PokemonPageState>({
+  //   currentPage: 0,
+  //   pokemons: [],
+  //   isLoading: false, // If use useTask isLoading will be false, is use useVisibleTask isLoading will be true
+  // })
 
   useTask$( async ({ track }) => {
 
-    track( () => pokemonState.currentPage )
+    track( () => pokemonList.currentPage )
 
-    const pokemons = await getSmallPokemons( pokemonState.currentPage * 10, 30 )
-    pokemonState.pokemons = [ ...pokemonState.pokemons, ...pokemons ]
+    const pokemons = await getSmallPokemons( pokemonList.currentPage * 10, 30 )
+    pokemonList.pokemons = [ ...pokemonList.pokemons, ...pokemons ]
 
-    pokemonState.isLoading = false
+    pokemonList.isLoading = false
   } )
 
-  useOnDocument( 'scroll', $( ( event ) => {
+  useOnDocument( 'scroll', $( () => {
     const maxScroll = document.body.scrollHeight
     const currentScroll = window.scrollY + window.innerHeight
 
-    if ( currentScroll + 200 >= maxScroll && !pokemonState.isLoading ) {
-      pokemonState.isLoading = true
-      pokemonState.currentPage++
+    if ( currentScroll + 200 >= maxScroll && !pokemonList.isLoading ) {
+      pokemonList.isLoading = true
+      pokemonList.currentPage++
     }
   } ) )
 
@@ -43,24 +46,24 @@ export default component$( () => {
       <h1 class="text-4xl font-bold text-center" > Hello from Client - List </h1>
       <div class="flex flex-col justify-center items-center gap-4">
         <span class="text-xl"> Status </span>
-        <span class="text-xl"> Current Page: { pokemonState.currentPage } </span>
-        <span class="text-xl"> Is Loading: X </span>
+        <span class="text-xl"> Current Page: { pokemonList.currentPage } </span>
+        <span class="text-xl"> Is Loading: { pokemonList.isLoading ? 'true' : 'false' } </span>
 
         <div class="flex justify-center align-center gap-4">
           <button
             class="btn btn-primary"
-            onClick$={ () => pokemonState.currentPage-- }
+            onClick$={ () => pokemonList.currentPage-- }
           > Previous </button>
           <button
             class="btn btn-primary"
-            onClick$={ () => pokemonState.currentPage++ }
+            onClick$={ () => pokemonList.currentPage++ }
           > Next </button>
         </div>
       </div>
 
       <div class="flex flex-wrap justify-center gap-4">
         {
-          pokemonState.pokemons.map( ({ name, id }) => (
+          pokemonList.pokemons.map( ({ name, id }) => (
               <article class="flex flex-col justify-center items-center gap-4" key={ name }>
                 <section class="flex flex-col justify-center items-center gap-4">
                   <span class="text-xl font-bold capitalize"> { name } </span>

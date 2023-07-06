@@ -1,29 +1,28 @@
-import { $, component$, useSignal } from '@builder.io/qwik';
+import { $, component$, useContext, useSignal } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { PokemonImage } from '~/components/pokemons/pokemon-image';
+import { PokemonGameContext } from '~/context';
 
 export default component$(() => {
 
-  const pokemonId = useSignal<number>( 1 );
-  const flipImage = useSignal<boolean>( false );
-  const isReveledPokemon = useSignal<boolean>( false );
+  const pokemonGame = useContext( PokemonGameContext )
 
   const onChangePokemonId = $(
     ( value : number ) => {
-      if ( pokemonId.value + value < 1 ) return
-      pokemonId.value += value
+      if ( pokemonGame.pokemonId + value < 1 ) return
+      pokemonGame.pokemonId += value
     }
   );
 
   const onChangeFlipImage = $(
     () => {
-      flipImage.value = !flipImage.value
+      pokemonGame.flipImage = !pokemonGame.flipImage
     }
   );
 
   const onReveal = $(
     () => {
-      isReveledPokemon.value = !isReveledPokemon.value
+      pokemonGame.isReveledPokemon = !pokemonGame.isReveledPokemon
     }
   );
       
@@ -31,12 +30,12 @@ export default component$(() => {
   return (
     <>
       <span class="text-2xl font-bold"> Simple Search Engine </span>
-      <span class="text-9xl"> { pokemonId } </span>
+      <span class="text-9xl"> { pokemonGame.pokemonId } </span>
 
       <PokemonImage
-        id={ pokemonId.value }
-        backImage={ flipImage.value }
-        reveal={ isReveledPokemon.value }
+        id={ pokemonGame.pokemonId }
+        backImage={ pokemonGame.flipImage }
+        reveal={ pokemonGame.isReveledPokemon }
       />
 
       <div class="flex justify-center align-center gap-4">
@@ -55,7 +54,7 @@ export default component$(() => {
         <button
           class="btn btn-primary"
           onClick$={ () => onReveal() }
-        > { isReveledPokemon.value ? 'Hide' : 'Reveal' } </button>
+        > { pokemonGame.isReveledPokemon ? 'Hide' : 'Reveal' } </button>
       </div>
     </>
   );
